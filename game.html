@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pixel Art Shooting – Angelin tuned (fixed timestep + time-based difficulty)</title>
+<style>
+  html,body{margin:0;background:#000;height:100%;display:grid;place-items:center}
+  #c{display:block;touch-action:none;image-rendering:pixelated}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+// ====== 画像（Base64） ======
+const ENEMY_SRCS=[
+  "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAQRJREFUOI3tkjFLA0EQhb89L8LBHZxFmq3sAoKQTgj4A6yutrT0F6W0s7cKgl2CcF2qgJ0gbJPCg12InCFjIXe5jWsg1k45s9/beY+B/1KBnhzC7AqIyJafORzA3K5TgIWF8aDncSoEzxzu3qxTU23FltUGY1ZcjVJPJArBc+vDAP08QuuEybPj9uWztRp3HzXw01s4hn4eAcmPQGRqxQOX1WaPwHfpXDEe9FoLLCx74d9mEZ2U/1JtBqYSHi6OveHp3TsArzcnXr8oa86yzgbN+qPHDwCmVtzuT02vKGt0rhhmsaNzB1KUdevRmFVwXa0Trs+PGGaxu8xUCijvkA60rwC+AHX1dn623PVvAAAAAElFTkSuQmCC",
+  "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAPlJREFUOI2dU7EOgjAUvFZ+wriQAGFB6wc4+AksfCUO+CcYXYjVzTgykxjqgK+2tGj0kibtpXe9tFcGP9QEz74RCgDqo1+/Xurt7gSAGgtFBuz2rlmRc61lplhkw+JwAs4Xhdu9d8SLObdMAm9WA42cNqEETnQ6vZE9zpeH5pNoOC+NORZzjiLnCMZCAJZYXjvLPIkCNLLXKXQWkQ3CT2J57axElgHd9pTYNPEa/II05kgi9r+B+QoEVVa9ejVRj3DVqnDVOnx9VDS3E5TV8Oa+KhNnFg7jKpPBuANJFCCNObabGUQGMPZusfczkRGBLuzbZ3KMPHD2PwEgq485RM69+AAAAABJRU5ErkJggg==",
+  "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAARNJREFUOI1jZMAO/uMQZyQowMDA8P//f4j+W+sRgvf3/GXwmMaCoYcFl+YT3f8wTO5XeM9Q+EDwP7IhTIRsRga8omwM/QrvGZC9yESsZgYGBgYZU3YMQxjxaX53B+KNjw+wh6nHNBZEGCD7WUiFiWFb0Qe4sxkYGBgEZFkZPjz+jeIauBdw2YxLMzJgwiqKppmBgYHh8+tfxBsA8zNMM48ETnsgYfDuzj+MgII5G9lmZDa/AgeK+v/9Cu//Q6MGjueYfv0/x/QrhvjNdf9hbLgXGAsfCMLil+HmOsxog4ndXPefQT2IkQGWGtHzwv9+hffwAEQHtpVcKJqxGQA3RNOLF0WQX4GRwbKMGUMPNgMYSMnOAMtAf3plqr/eAAAAAElFTkSuQmCC"
+];
+const PLAYER_SRC="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAQRJREFUOI3tkDtOw1AQRY+hQ7iI05CPkFLYRUSNKHARBbEFV6whBRtIFhCldZcNsAtTIJBYgC3hipgGGztBIDePwt+Xj9JSZKSnuXP15s7MhUP8sxhkSQCirV9sxYM9GsIBMbwbCfJcx04uUm84LpHahTQZn5ye83qm0jT6zB7mfLwFfN3eEP8m/Cy+eUljULsT0gQABQDNgNAVXN7D9RU0WtWIKMjqKMjqxyd4noJmKIRuLgBycxTA+6d8XKdZ4UIElKOS7Om7m0HmevqmeVh23SRRcFi2xDkFn5tZbeB7mJYNgLMUq/UJBWdaNvheyW+auGU9KXxPMrEKzYD1E3a97C8AfzBBfBZb3sdTAAAAAElFTkSuQmCC";
+const ANGEL_SRC="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAARZJREFUOI2lkz1OxDAQRt9YCAGSG0REg5ZqC67ABTgB0jZ0ewMqTkC1N6CjQeIEcACuQJGKFRJCRttYWtA2Q+FMsk4C4eer7PE8zzcZB/4pAbS1N2lPbudMANWHSxhvIsV5E7u5yunJtDkLMyhXyPEFDoB5AeUKDbPm9lFAJtMEjkJd2WDmRWZLAdadVJc1DixWVbawkKvd91eSzgLQa73jgCeOgP23mBGve55H4JlDzuSkZusWVH9a3Lwn3gF6//I7GKBi1AEsw2B+R8Y4gK04kN0jYxyA/4MDYzYAxj5tpDVV+7B9cWOSg0UOtB/ResxyjKnH+H6rxF0oI8QCPjzspNfKMqSefUhu/QK2T9MYv/v7hiQAn7kqbU+zGAhDAAAAAElFTkSuQmCC";
+
+// ====== 画像読み込み & アルファマップ ======
+function withAlpha(src){
+  const img=new Image(); img.src=src;
+  const out={img,ready:false,alpha:null};
+  img.onload=()=>{
+    const oc=document.createElement('canvas'); oc.width=16; oc.height=16;
+    const ctx=oc.getContext('2d'); ctx.drawImage(img,0,0,16,16);
+    out.alpha=ctx.getImageData(0,0,16,16).data; out.ready=true;
+  };
+  return out;
+}
+const ENEMIES=ENEMY_SRCS.map(withAlpha);
+const PLAYER=withAlpha(PLAYER_SRC);
+const ANGEL=withAlpha(ANGEL_SRC);
+
+// ====== 基本設定 ======
+let c=document.getElementById('c'),x=c.getContext('2d',{alpha:false}),W=160,H=240;
+let P={x:72,y:208,w:16,h:16,v:2,skin:PLAYER};
+let E=[], angels=[], o=0, tx=80, S=0, alive=true, shield=false;
+
+// ====== 表示フィット ======
+function fit(){
+  const d=devicePixelRatio||1, ar=H/W;
+  const w=Math.min(innerWidth*.98, innerHeight*.98/ar)|0;
+  const h=(w*ar)|0;
+  c.style.width=w+'px'; c.style.height=h+'px';
+  c.width=(w*d)|0; c.height=(h*d)|0;
+  x.setTransform((w*d)/W,0,0,(h*d)/H,0,0);
+  x.imageSmoothingEnabled=false;
+}
+addEventListener('resize', fit); fit();
+
+// ====== 生成 ======
+function rnd(a,b){return Math.random()*(b-a)+a}
+function spawnEnemy(){
+  const t=(Math.random()*3)|0;
+  const v= t===0?2.0 : (t===1?1.7:2.3);
+  E.push({x:rnd(0,W-16),y:-18,w:16,h:16,v,skin:ENEMIES[t]});
+}
+function spawnAngel(){
+  angels.push({x:rnd(0,W-16),y:-18,w:16,h:16,v:1.4,skin:ANGEL});
+}
+
+// ====== Angelin 出現頻度（抑えめに調整） ======
+const ANGEL_BASE_INTERVAL = 720;  // 12秒ごとに判定（60fps想定だが固定タイムステップなので秒換算で一定）
+const ANGEL_SPAWN_PROB    = 0.35; // 35%の確率 → 期待値 ~34秒に1回
+
+// ====== 難易度スケーリング（時間ベース） ======
+// 仕様：
+// ・開始時は 22フレームごとに敵を1体出現
+// ・5秒ごとに出現間隔を 2フレーム短縮（22→20→18→…→2）
+// ・2フレーム未満にしない。代わりに 2フレームに複数体を同時出現（2体、3体…）
+// ・極端な負荷を避けるため同時出現の上限は 6体に制限
+let enemySpawnIntervalFrames = 22;
+let enemiesPerSpawn = 1;
+const DIFFICULTY_STEP_SEC = 5;
+let lastDifficultyUpdateSec = 0;
+
+// 秒数管理（固定タイムステップなのでフレーム→秒に換算可能）
+let elapsedFrames = 0;
+
+// ====== ピクセル当たり判定 ======
+function hitPixel(a,b){
+  if(a.x>=b.x+b.w||b.x>=a.x+a.w||a.y>=b.y+b.h||b.y>=a.y+a.h) return false;
+  if(!a.skin.ready||!b.skin.ready) return true;
+  const L=Math.max(a.x,b.x)|0, T=Math.max(a.y,b.y)|0;
+  const R=Math.min(a.x+a.w,b.x+b.w)|0, B=Math.min(a.y+a.h,b.y+b.h)|0;
+  for(let y=T;y<B;y++){
+    const ay=y-a.y|0, by=y-b.y|0;
+    for(let x0=L;x0<R;x0++){
+      const ax=x0-a.x|0, bx=x0-b.x|0;
+      const ia=((ay*16+ax)<<2)+3, ib=((by*16+bx)<<2)+3;
+      if(a.skin.alpha[ia]>0 && b.skin.alpha[ib]>0) return true;
+    }
+  }
+  return false;
+}
+
+// ====== 入力 ======
+function pos(e){const r=c.getBoundingClientRect();return (e.clientX-r.left)/r.width*W}
+c.onpointerdown=e=>{ if(!alive) reset(); tx=pos(e); };
+c.onpointermove=e=>{ tx=pos(e); };
+addEventListener('keydown',e=>{ if(!alive) reset(); if(e.key==='ArrowLeft')tx-=20; else if(e.key==='ArrowRight')tx+=20; });
+
+function reset(){ alive=true; E.length=0; angels.length=0; o=0; S=0; shield=false; P.x=72; tx=80; P.skin=PLAYER;
+  enemySpawnIntervalFrames = 22;
+  enemiesPerSpawn = 1;
+  lastDifficultyUpdateSec = 0;
+  elapsedFrames = 0;
+}
+
+// ====== 1フレーム ======
+function step(){
+  // 出現・移動
+  if(o % enemySpawnIntervalFrames === 0){
+    for(let i=0;i<enemiesPerSpawn;i++) spawnEnemy();
+  }
+  if(o % ANGEL_BASE_INTERVAL === 0 && Math.random() < ANGEL_SPAWN_PROB) spawnAngel();
+  o++;
+  elapsedFrames++;
+
+  E.forEach(e=>e.y+=e.v);
+  angels.forEach(a=>a.y+=a.v);
+
+  const dx=tx-P.x; P.x+=Math.sign(dx)*Math.min(Math.abs(dx),P.v);
+  P.x=Math.max(0,Math.min(W-P.w,P.x));
+
+  angels = angels.filter(a=>{
+    if(hitPixel(P,a)){ shield=true; P.skin=ANGEL; return false; }
+    return a.y<H+20;
+  });
+
+  for(const e of E){
+    if(hitPixel(P,e)){
+      if(shield){
+        shield=false; P.skin=PLAYER; e.y=H+99;
+      }else{
+        alive=false;
+      }
+    }
+  }
+  E=E.filter(e=>e.y<H+20);
+  S++;
+
+  // ==== 時間ベースの難易度上げ ====
+  const elapsedSec = elapsedFrames / 60; // 固定タイムステップ（60Hz）前提
+  if(elapsedSec - lastDifficultyUpdateSec >= DIFFICULTY_STEP_SEC){
+    lastDifficultyUpdateSec += DIFFICULTY_STEP_SEC;
+    if(enemySpawnIntervalFrames > 2){
+      enemySpawnIntervalFrames = Math.max(2, enemySpawnIntervalFrames - 2);
+    }else{
+      enemiesPerSpawn = Math.min(enemiesPerSpawn + 1, 6); // 上限で暴走防止
+    }
+  }
+}
+
+// ====== 描画 ======
+function draw(){
+  x.fillStyle='#000'; x.fillRect(0,0,W,H);
+  E.forEach(e=> e.skin.img.complete ? x.drawImage(e.skin.img,e.x,e.y,e.w,e.h) : (x.fillStyle='#f33',x.fillRect(e.x,e.y,e.w,e.h)));
+  angels.forEach(a=> a.skin.img.complete ? x.drawImage(a.skin.img,a.x,a.y,a.w,a.h) : (x.fillStyle='#fff',x.fillRect(a.x,a.y,a.w,a.h)));
+  if(P.skin.img.complete) x.drawImage(P.skin.img,P.x,P.y,P.w,P.h); else { x.fillStyle='#0ff'; x.fillRect(P.x,P.y,P.w,P.h); }
+
+  x.fillStyle='#fff'; x.font='bold 12px monospace';
+  x.fillText('S:'+S+'  SHIELD:'+(shield?'ON':'OFF'),4,12);
+  // デバッグ表示：現在の出現設定
+  x.fillText('ENEMY: every '+enemySpawnIntervalFrames+'f x'+enemiesPerSpawn,4,26);
+
+  if(!alive){
+    x.fillStyle='rgba(0,0,0,0.6)'; x.fillRect(10,90,140,70);
+    x.strokeStyle='rgba(255,255,255,0.25)'; x.strokeRect(10,90,140,70);
+    x.fillStyle='#fff'; x.font='bold 18px monospace'; x.fillText('GAME OVER',28,115);
+    x.font='12px monospace'; x.fillText('Tap to restart',38,135);
+  }
+}
+
+// ====== ループ（固定タイムステップ 60Hz） ======
+const FIXED_DT_MS = 1000/60;  // 60Hz
+let last = performance.now();
+let acc  = 0;
+
+function loop(now){
+  let dt = now - last;
+  last = now;
+  if (dt > 1000) dt = 1000;   // タブ復帰直後などの大ジャンプ抑制
+  acc += dt;
+
+  const MAX_STEPS = 5; // 超低fps端末での暴走防止
+  let steps = 0;
+  while (acc >= FIXED_DT_MS && steps < MAX_STEPS){
+    if (alive) step();
+    acc -= FIXED_DT_MS;
+    steps++;
+  }
+
+  draw();
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
