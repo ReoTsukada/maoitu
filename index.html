@@ -1,0 +1,89 @@
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>魔王様！！いつまでよければいいですか！？ ランチャー</title>
+
+<!-- ▼ OGP / Twitterカード -->
+<meta property="og:title" content="魔王様！！いつまでよければいいですか！？">
+<meta property="og:description" content="避けゲーアクション！皆もやってみてね！">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://reotsukada.github.io/maoitu/">
+<meta property="og:image" content="https://reotsukada.github.io/maoitu/ogp.png">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@ARTa_PIXELART">
+
+<style>
+body {
+  margin:0;
+  background:#000;
+  height:100%;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:20px;
+  color:#fff;
+  font-family:sans-serif;
+}
+h1 { font-size:20px;text-align:center; }
+button {
+  font:700 16px system-ui;
+  padding:10px 20px;
+  border:0;
+  border-radius:12px;
+  cursor:pointer;
+}
+a { color:#7dd3fc; }
+</style>
+</head>
+<body>
+
+<!-- 開発者表記 -->
+<div style="position:absolute;top:10px;left:0;right:0;text-align:center;font-size:14px;color:#ccc;">
+  開発者: <a href="https://x.com/ARTa_PIXELART" target="_blank" style="color:#1DA1F2;text-decoration:none;">@ARTa_PIXELART</a>
+</div>
+
+<h1>魔王様！！いつまでよければいいですか！？</h1>
+
+<!-- プレイボタン -->
+<button id="playBtn" style="font-size:18px;padding:14px 24px;">▶ プレイ</button>
+
+<!-- シェアボタン -->
+<div style="display:flex;gap:12px;">
+  <button onclick="shareTwitter()" style="background:#1DA1F2;color:#fff;">Twitterでシェア</button>
+  <button onclick="shareInstagram()" style="background:#E1306C;color:#fff;">Instagramでシェア</button>
+</div>
+
+<script>
+const GAME_URL = "game_angelin_restored.html"; // ゲーム本体へのリンク
+
+// 投稿文（スコア無し・#PiXiEED 付き・最後に公開リンク）
+function shareText() {
+  return `開発者:@ARTa_PIXELART　\n『魔王様！！いつまでよければいいですか！？』\n皆もやってみてね！！！\n\nリンクから遊べるよ！！#PiXiEED\n\nhttps://reotsukada.github.io/maoitu/`;
+}
+
+// Twitterシェア
+function shareTwitter() {
+  const text = encodeURIComponent(shareText());
+  const url = `https://twitter.com/intent/tweet?text=${text}`;
+  window.open(url, "_blank");
+}
+
+// Instagramシェア → テキストコピー
+function shareInstagram() {
+  const text = shareText();
+  navigator.clipboard.writeText(text).then(() => {
+    alert("シェア用テキストをコピーしました！Instagramに貼り付けて使ってください。");
+  });
+}
+
+// プレイボタン動作
+document.getElementById("playBtn").onclick = () => {
+  location.href = GAME_URL;
+};
+</script>
+
+</body>
+</html>
