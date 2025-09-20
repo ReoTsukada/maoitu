@@ -96,34 +96,27 @@ a { color:#7dd3fc; }
 </div>
 
 <!-- シェアボタン -->
-<div style="display:flex;gap:12px;">
-  <button onclick="shareTwitter()" style="background:#1DA1F2;color:#fff;">Twitterでシェア</button>
-  <button onclick="shareInstagram()" style="background:#E1306C;color:#fff;">Instagramでシェア</button>
-</div>
+<button id="shareBtn" style="background:#22c55e;color:#000;">シェアする</button>
 
 <script>
 const GAME_URL = "game.html"; // ← 修正済み
 const AUDIO_KEY = "maoitu_audio";
+const shareBtn = document.getElementById("shareBtn");
 
 // 投稿文（スコア無し・#PiXiEED 付き・最後に公開リンク）
 function shareText() {
   return `開発者:@ARTa_PIXELART　\n『魔王様！！いつまでよければいいですか！？』\n皆もやってみてね！！！\n\nリンクから遊べるよ！！#PiXiEED\n\nhttps://reotsukada.github.io/maoitu/`;
 }
 
-// Twitterシェア
-function shareTwitter() {
-  const text = encodeURIComponent(shareText());
-  const url = `https://twitter.com/intent/tweet?text=${text}`;
-  window.open(url, "_blank");
-}
-
-// Instagramシェア → テキストコピー
-function shareInstagram() {
+shareBtn.addEventListener("click", async () => {
   const text = shareText();
-  navigator.clipboard.writeText(text).then(() => {
-    alert("シェア用テキストをコピーしました！Instagramに貼り付けて使ってください。");
-  });
-}
+  try{
+    await navigator.clipboard.writeText(text);
+    alert("シェア用テキストをコピーしました！");
+  }catch(err){
+    alert("クリップボードへのコピーに失敗しました。手動で共有してください。");
+  }
+});
 
 // プレイボタン動作
 document.getElementById("playBtn").onclick = () => {
