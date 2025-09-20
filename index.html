@@ -36,6 +36,42 @@ button {
   cursor:pointer;
 }
 a { color:#7dd3fc; }
+.primary-controls {
+  display:flex;
+  align-items:center;
+  gap:16px;
+}
+.switch {
+  position:relative;
+  display:inline-block;
+  width:48px;
+  height:26px;
+}
+.switch input { opacity:0; width:0; height:0; }
+.slider {
+  position:absolute;
+  inset:0;
+  background:#4b5563;
+  border-radius:20px;
+  transition:0.2s;
+}
+.slider:before {
+  content:"";
+  position:absolute;
+  height:20px;
+  width:20px;
+  left:3px;
+  top:3px;
+  background:#fff;
+  border-radius:50%;
+  transition:0.2s;
+}
+.switch input:checked + .slider { background:#22c55e; }
+.switch input:checked + .slider:before { transform:translateX(22px); }
+.volume-label {
+  font-size:14px;
+  color:#ccc;
+}
 </style>
 </head>
 <body>
@@ -47,8 +83,17 @@ a { color:#7dd3fc; }
 
 <h1>魔王様！！いつまでよければいいですか！？</h1>
 
-<!-- プレイボタン -->
-<button id="playBtn" style="font-size:18px;padding:14px 24px;">▶ プレイ</button>
+<!-- プレイボタン + 音量スイッチ -->
+<div class="primary-controls">
+  <button id="playBtn" style="font-size:18px;padding:14px 24px;">▶ プレイ</button>
+  <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-start;">
+    <label class="switch">
+      <input type="checkbox" id="audioToggle">
+      <span class="slider"></span>
+    </label>
+    <span id="audioToggleLabel" class="volume-label"></span>
+  </div>
+</div>
 
 <!-- シェアボタン -->
 <div style="display:flex;gap:12px;">
@@ -58,6 +103,7 @@ a { color:#7dd3fc; }
 
 <script>
 const GAME_URL = "game.html"; // ← 修正済み
+const AUDIO_KEY = "maoitu_audio";
 
 // 投稿文（スコア無し・#PiXiEED 付き・最後に公開リンク）
 function shareText() {
@@ -83,6 +129,23 @@ function shareInstagram() {
 document.getElementById("playBtn").onclick = () => {
   location.href = GAME_URL;
 };
+
+// 音量トグル
+const audioToggle = document.getElementById("audioToggle");
+const audioToggleLabel = document.getElementById("audioToggleLabel");
+
+function updateAudioLabel() {
+  audioToggleLabel.textContent = audioToggle.checked ? "音量 ON" : "音量 OFF";
+}
+
+const storedAudio = localStorage.getItem(AUDIO_KEY);
+audioToggle.checked = storedAudio !== "off";
+updateAudioLabel();
+
+audioToggle.addEventListener("change", () => {
+  localStorage.setItem(AUDIO_KEY, audioToggle.checked ? "on" : "off");
+  updateAudioLabel();
+});
 </script>
 
 </body>
