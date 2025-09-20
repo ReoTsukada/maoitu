@@ -10,8 +10,17 @@
 </style>
 </head>
 <body>
+<audio id="bgm" src="bgm.mp3" loop autoplay hidden volume="0.5"></audio>
 <canvas id="c"></canvas>
 <script>
+const bgm = document.getElementById('bgm');
+bgm.volume = 0.5;
+// モバイル環境での自動再生対策
+document.addEventListener('click', () => {
+  if (bgm.paused) {
+    bgm.play().catch(()=>{});
+  }
+}, { once: true });
 // ====== 画像（Base64） ======
 const ENEMY_SRCS=[
   "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAQRJREFUOI3tkjFLA0EQhb89L8LBHZxFmq3sAoKQTgj4A6yutrT0F6W0s7cKgl2CcF2qgJ0gbJPCg12InCFjIXe5jWsg1k45s9/beY+B/1KBnhzC7AqIyJafORzA3K5TgIWF8aDncSoEzxzu3qxTU23FltUGY1ZcjVJPJArBc+vDAP08QuuEybPj9uWztRp3HzXw01s4hn4eAcmPQGRqxQOX1WaPwHfpXDEe9FoLLCx74d9mEZ2U/1JtBqYSHi6OveHp3TsArzcnXr8oa86yzgbN+qPHDwCmVtzuT02vKGt0rhhmsaNzB1KUdevRmFVwXa0Trs+PGGaxu8xUCijvkA60rwC+AHX1dn623PVvAAAAAElFTkSuQmCC",
