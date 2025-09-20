@@ -35,8 +35,7 @@
 <canvas id="c"></canvas>
 <div id="sharePanel">
   <div id="shareScoreLabel">SCORE: 0</div>
-  <button id="shareTwitterBtn" style="background:#1DA1F2;color:#fff;">Twitterでシェア</button>
-  <button id="shareInstagramBtn" style="background:#E1306C;color:#fff;">Instagramでシェア</button>
+  <button id="shareActionBtn" style="background:#22c55e;color:#000;">シェアする</button>
 </div>
 <script>
 const bgm = document.getElementById('bgm');
@@ -51,28 +50,26 @@ function syncAudioSetting(){
 let audioEnabled = syncAudioSetting();
 const sharePanel = document.getElementById('sharePanel');
 const shareScoreLabel = document.getElementById('shareScoreLabel');
-const shareTwitterBtn = document.getElementById('shareTwitterBtn');
-const shareInstagramBtn = document.getElementById('shareInstagramBtn');
+const shareActionBtn = document.getElementById('shareActionBtn');
 let shareScore = 0;
 
 function shareText(score){
   return `開発者:@ARTa_PIXELART\n『魔王様！！いつまでよければいいですか！？』\nスコア: ${score}\n皆もやってみてね！！！\n\nリンクから遊べるよ！！#PiXiEED\n\nhttps://reotsukada.github.io/maoitu/`;
 }
 
-shareTwitterBtn.onclick = () => {
-  const text = encodeURIComponent(shareText(shareScore));
-  const url = `https://twitter.com/intent/tweet?text=${text}`;
-  window.open(url, '_blank');
-};
+async function copyShareText(text){
+  try{
+    await navigator.clipboard.writeText(text);
+    alert('シェア用テキストをコピーしました！');
+  }catch(err){
+    alert('シェア機能が利用できません。手動でスコアを共有してください。');
+  }
+}
 
-shareInstagramBtn.onclick = () => {
+shareActionBtn.addEventListener('click', async () => {
   const text = shareText(shareScore);
-  navigator.clipboard.writeText(text).then(() => {
-    alert('シェア用テキストをコピーしました！Instagramに貼り付けて使ってください。');
-  }).catch(() => {
-    alert('コピーに失敗しました。手動でスコアを共有してください。');
-  });
-};
+  copyShareText(text);
+});
 
 function showSharePanel(score){
   shareScore = score;
@@ -162,6 +159,7 @@ const ANGEL_SPAWN_PROB    = 0.35; // 35%の確率 → 期待値 ~34秒に1回
 // ・極端な負荷を避けるため同時出現の上限は 6体に制限
 let enemySpawnIntervalFrames = 22;
 let enemiesPerSpawn = 1;
+let difficultyLevel = 1;
 const DIFFICULTY_STEP_SEC = 5;
 let lastDifficultyUpdateSec = 0;
 
@@ -208,6 +206,7 @@ function reset(){ alive=true; E.length=0; angels.length=0; o=0; S=0; shield=fals
   enemiesPerSpawn = 1;
   lastDifficultyUpdateSec = 0;
   elapsedFrames = 0;
+  difficultyLevel = 1;
   hideSharePanel();
 }
 
@@ -252,6 +251,7 @@ function step(){
   const elapsedSec = elapsedFrames / 60; // 固定タイムステップ（60Hz）前提
   if(elapsedSec - lastDifficultyUpdateSec >= DIFFICULTY_STEP_SEC){
     lastDifficultyUpdateSec += DIFFICULTY_STEP_SEC;
+    difficultyLevel++;
     if(enemySpawnIntervalFrames > 2){
       enemySpawnIntervalFrames = Math.max(2, enemySpawnIntervalFrames - 2);
     }else{
@@ -268,9 +268,8 @@ function draw(){
   if(P.skin.img.complete) x.drawImage(P.skin.img,P.x,P.y,P.w,P.h); else { x.fillStyle='#0ff'; x.fillRect(P.x,P.y,P.w,P.h); }
 
   x.fillStyle='#fff'; x.font='bold 12px monospace';
-  x.fillText('S:'+S+'  SHIELD:'+(shield?'ON':'OFF'),4,12);
-  // デバッグ表示：現在の出現設定
-  x.fillText('ENEMY: every '+enemySpawnIntervalFrames+'f x'+enemiesPerSpawn,4,26);
+  x.fillText('S:'+S+'  エンジェルの加護:'+(shield?'あり':'なし'),4,12);
+  x.fillText('難易度: '+difficultyLevel,4,26);
 
   if(!alive){
     x.fillStyle='rgba(0,0,0,0.6)'; x.fillRect(10,90,140,70);
