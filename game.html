@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Pixel Art Shooting – Angelin tuned (fixed timestep + time-based difficulty)</title>
 <style>
-  html,body{margin:0;background:#000;height:100%;display:grid;place-items:center}
+  html,body{margin:0;background:#000;height:100%;display:grid;place-items:center;touch-action:none;overscroll-behavior:none}
   #c{display:block;touch-action:none;image-rendering:pixelated}
   #sharePanel{
     position:absolute;
@@ -117,11 +117,14 @@ function withAlpha(src){
 const ENEMY_TYPES=ENEMY_TYPES_DATA.map(t=>({...t,skin:withAlpha(t.src)}));
 const PLAYER=withAlpha(PLAYER_SRC);
 const ANGEL=withAlpha(ANGEL_SRC);
+const PLAYER_START_X = 72;
+const PLAYER_START_Y = 192;
+const PLAYER_START_TX = 80;
 
 // ====== 基本設定 ======
 let c=document.getElementById('c'),x=c.getContext('2d',{alpha:false}),W=160,H=240;
-let P={x:72,y:208,w:16,h:16,v:2,skin:PLAYER};
-let E=[], angels=[], o=0, tx=80, S=0, alive=true, shield=false;
+let P={x:PLAYER_START_X,y:PLAYER_START_Y,w:16,h:16,v:2,skin:PLAYER};
+let E=[], angels=[], o=0, tx=PLAYER_START_TX, S=0, alive=true, shield=false;
 
 // ====== 表示フィット ======
 function fit(){
@@ -192,16 +195,18 @@ function hitBox(a, b){
 function pos(e){const r=c.getBoundingClientRect();return (e.clientX-r.left)/r.width*W}
 document.onpointerdown = e => {
   if(isOnSharePanel(e.target)) return;
+  if(e.cancelable) e.preventDefault();
   if(!alive) reset();
   tx = pos(e);
 };
 document.onpointermove = e => {
   if(isOnSharePanel(e.target)) return;
+  if(e.cancelable) e.preventDefault();
   tx = pos(e);
 };
 addEventListener('keydown',e=>{ if(!alive) reset(); if(e.key==='ArrowLeft')tx-=20; else if(e.key==='ArrowRight')tx+=20; });
 
-function reset(){ alive=true; E.length=0; angels.length=0; o=0; S=0; shield=false; P.x=72; tx=80; P.skin=PLAYER;
+function reset(){ alive=true; E.length=0; angels.length=0; o=0; S=0; shield=false; P.x=PLAYER_START_X; P.y=PLAYER_START_Y; tx=PLAYER_START_TX; P.skin=PLAYER;
   enemySpawnIntervalFrames = 22;
   enemiesPerSpawn = 1;
   lastDifficultyUpdateSec = 0;
