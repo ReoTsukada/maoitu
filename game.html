@@ -242,13 +242,13 @@ document.onpointerdown = e => {
   if(isOnSharePanel(e.target)) return;
   if(e.cancelable) e.preventDefault();
   if(!alive) return;
-  tx = pos(e);
+  tx = pos(e) - P.w/2;
 };
 document.onpointermove = e => {
   if(isOnSharePanel(e.target)) return;
   if(e.cancelable) e.preventDefault();
   if(!alive) return;
-  tx = pos(e);
+  tx = pos(e) - P.w/2;
 };
 addEventListener('keydown',e=>{ if(!alive) return; if(e.key==='ArrowLeft')tx-=20; else if(e.key==='ArrowRight')tx+=20; });
 
