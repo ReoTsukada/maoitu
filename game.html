@@ -39,6 +39,15 @@ gtag('config', GA_MEASUREMENT_ID);
     cursor:pointer;
   }
   #shareScoreLabel{font-size:18px;font-weight:700;}
+  #footer{
+    position:absolute;
+    bottom:12px;
+    right:14px;
+    color:rgba(255,255,255,0.6);
+    font:10px/1.2 monospace;
+    user-select:none;
+    pointer-events:none;
+  }
 </style>
 </head>
 <body>
@@ -47,7 +56,9 @@ gtag('config', GA_MEASUREMENT_ID);
 <div id="sharePanel">
   <div id="shareScoreLabel">SCORE: 0</div>
   <button id="shareActionBtn" style="background:#22c55e;color:#000;">シェアする</button>
+  <button id="restartActionBtn" style="background:#3b82f6;color:#fff;">もう一度遊ぶ</button>
 </div>
+<div id="footer">© 2025 アルタ</div>
 <script>
 const bgm = document.getElementById('bgm');
 bgm.volume = 0.5;
@@ -62,6 +73,7 @@ let audioEnabled = syncAudioSetting();
 const sharePanel = document.getElementById('sharePanel');
 const shareScoreLabel = document.getElementById('shareScoreLabel');
 const shareActionBtn = document.getElementById('shareActionBtn');
+const restartActionBtn = document.getElementById('restartActionBtn');
 let shareScore = 0;
 
 function logPlayEvent(eventName, params={}){
@@ -92,10 +104,22 @@ shareActionBtn.addEventListener('click', async () => {
   copyShareText(text);
 });
 
+restartActionBtn.addEventListener('click', () => {
+  hideSharePanel();
+  reset();
+});
+
 function showSharePanel(score){
   shareScore = score;
   shareScoreLabel.textContent = `SCORE: ${score}`;
   sharePanel.style.display = 'flex';
+  if(typeof restartActionBtn.focus === 'function'){
+    try{
+      restartActionBtn.focus({ preventScroll: true });
+    }catch(_){
+      restartActionBtn.focus();
+    }
+  }
 }
 
 function hideSharePanel(){
@@ -217,15 +241,16 @@ function pos(e){const r=c.getBoundingClientRect();return (e.clientX-r.left)/r.wi
 document.onpointerdown = e => {
   if(isOnSharePanel(e.target)) return;
   if(e.cancelable) e.preventDefault();
-  if(!alive) reset();
+  if(!alive) return;
   tx = pos(e);
 };
 document.onpointermove = e => {
   if(isOnSharePanel(e.target)) return;
   if(e.cancelable) e.preventDefault();
+  if(!alive) return;
   tx = pos(e);
 };
-addEventListener('keydown',e=>{ if(!alive) reset(); if(e.key==='ArrowLeft')tx-=20; else if(e.key==='ArrowRight')tx+=20; });
+addEventListener('keydown',e=>{ if(!alive) return; if(e.key==='ArrowLeft')tx-=20; else if(e.key==='ArrowRight')tx+=20; });
 
 function reset(countPlay = true){ alive=true; E.length=0; angels.length=0; o=0; S=0; shield=false; P.x=PLAYER_START_X; P.y=PLAYER_START_Y; tx=PLAYER_START_TX; P.skin=PLAYER;
   enemySpawnIntervalFrames = 22;
@@ -312,7 +337,7 @@ function draw(){
     x.fillStyle='rgba(0,0,0,0.6)'; x.fillRect(10,90,140,70);
     x.strokeStyle='rgba(255,255,255,0.25)'; x.strokeRect(10,90,140,70);
     x.fillStyle='#fff'; x.font='bold 18px monospace'; x.fillText('GAME OVER',28,115);
-    x.font='12px monospace'; x.fillText('Tap to restart',38,135);
+    x.font='12px monospace'; x.fillText('右上のボタンで共有や再挑戦',4,135);
   }
 }
 
