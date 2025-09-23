@@ -50,6 +50,29 @@ a { color:#7dd3fc; }
   align-items:center;
   gap:16px;
 }
+.instructions-card {
+  max-width:320px;
+  padding:16px 20px;
+  background:rgba(255,255,255,0.08);
+  border:1px solid rgba(255,255,255,0.15);
+  border-radius:16px;
+  color:#f3f4f6;
+  font-size:14px;
+  line-height:1.6;
+  text-align:left;
+}
+.instructions-card h2 {
+  margin:0 0 8px;
+  font-size:16px;
+  color:#fff;
+}
+.instructions-card ul {
+  margin:0;
+  padding-left:18px;
+}
+.instructions-card li {
+  margin-bottom:6px;
+}
 .switch {
   position:relative;
   display:inline-block;
@@ -106,6 +129,15 @@ a { color:#7dd3fc; }
 
 <!-- シェアボタン -->
 <button id="shareBtn" style="background:#22c55e;color:#000;">シェアする</button>
+
+<div class="instructions-card">
+  <h2>遊び方</h2>
+  <ul>
+    <li>操作：画面をタップ / マウスドラッグ、または ←→ キーで移動します。</li>
+    <li>敵にぶつかると即ゲームオーバーです。</li>
+    <li>エンジェリンを取ると一度だけ身代わりが発動し、次の衝突を防ぎます。</li>
+  </ul>
+</div>
 
 <script>
 const GAME_URL = "game.html"; // ← 修正済み
