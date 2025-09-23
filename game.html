@@ -32,14 +32,13 @@ gtag('config', GA_MEASUREMENT_ID);
     font-size:12px;
   }
   #sharePanel button{
-    font:700 14px system-ui;
+    font:700 12px system-ui;
     padding:8px 14px;
     border:0;
     border-radius:10px;
     cursor:pointer;
   }
   #shareScoreLabel{font-size:18px;font-weight:700;}
-  .shareStat{font-size:12px;opacity:0.85;}
 </style>
 </head>
 <body>
@@ -47,8 +46,6 @@ gtag('config', GA_MEASUREMENT_ID);
 <canvas id="c"></canvas>
 <div id="sharePanel">
   <div id="shareScoreLabel">SCORE: 0</div>
-  <div id="shareHighScoreLabel" class="shareStat">最高スコア: 0</div>
-  <div id="shareTotalPlaysLabel" class="shareStat">総プレイ数: 0</div>
   <button id="shareActionBtn" style="background:#22c55e;color:#000;">シェアする</button>
 </div>
 <script>
@@ -65,35 +62,7 @@ let audioEnabled = syncAudioSetting();
 const sharePanel = document.getElementById('sharePanel');
 const shareScoreLabel = document.getElementById('shareScoreLabel');
 const shareActionBtn = document.getElementById('shareActionBtn');
-const shareHighScoreLabel = document.getElementById('shareHighScoreLabel');
-const shareTotalPlaysLabel = document.getElementById('shareTotalPlaysLabel');
 let shareScore = 0;
-
-const TOTAL_PLAYS_KEY = 'maoitu_total_plays';
-const HIGH_SCORE_KEY = 'maoitu_high_score';
-
-function readStat(key){
-  try{
-    const value = Number(localStorage.getItem(key));
-    return Number.isFinite(value) && value >= 0 ? value : 0;
-  }catch(_){
-    return 0;
-  }
-}
-
-function writeStat(key, value){
-  try{
-    localStorage.setItem(key, String(value));
-  }catch(_){/* ignore write errors */}
-}
-
-let totalPlays = readStat(TOTAL_PLAYS_KEY);
-let highScore = readStat(HIGH_SCORE_KEY);
-
-function updateStatsUI(){
-  shareHighScoreLabel.textContent = `最高スコア: ${highScore}`;
-  shareTotalPlaysLabel.textContent = `総プレイ数: ${totalPlays}`;
-}
 
 function logPlayEvent(eventName, params={}){
   if(typeof window.gtag === 'function' && GA_MEASUREMENT_ID){
@@ -101,20 +70,8 @@ function logPlayEvent(eventName, params={}){
   }
 }
 
-function trackPlay(){
-  totalPlays += 1;
-  writeStat(TOTAL_PLAYS_KEY, totalPlays);
-  updateStatsUI();
-  logPlayEvent('play_started', { total_plays: totalPlays });
-}
-
-function registerHighScore(score){
-  if(score > highScore){
-    highScore = score;
-    writeStat(HIGH_SCORE_KEY, highScore);
-    updateStatsUI();
-    logPlayEvent('high_score_updated', { score });
-  }
+function logPlayStart(){
+  logPlayEvent('play_started');
 }
 
 function shareText(score){
@@ -138,7 +95,6 @@ shareActionBtn.addEventListener('click', async () => {
 function showSharePanel(score){
   shareScore = score;
   shareScoreLabel.textContent = `SCORE: ${score}`;
-  updateStatsUI();
   sharePanel.style.display = 'flex';
 }
 
@@ -278,13 +234,12 @@ function reset(countPlay = true){ alive=true; E.length=0; angels.length=0; o=0; 
   elapsedFrames = 0;
   difficultyLevel = 1;
   hideSharePanel();
-  if(countPlay) trackPlay();
+  if(countPlay) logPlayStart();
 }
 
 function endRun(){
   if(!alive) return;
   alive = false;
-  registerHighScore(S);
   logPlayEvent('game_over', { score: S });
 }
 
@@ -346,11 +301,12 @@ function draw(){
   angels.forEach(a=> a.skin.img.complete ? x.drawImage(a.skin.img,a.x,a.y,a.w,a.h) : (x.fillStyle='#fff',x.fillRect(a.x,a.y,a.w,a.h)));
   if(P.skin.img.complete) x.drawImage(P.skin.img,P.x,P.y,P.w,P.h); else { x.fillStyle='#0ff'; x.fillRect(P.x,P.y,P.w,P.h); }
 
-  x.fillStyle='#fff'; x.font='bold 12px monospace';
-  x.fillText('S:'+S+'  エンジェルの加護:'+(shield?'あり':'なし'),4,12);
-  x.fillText('難易度: '+difficultyLevel,4,26);
-  x.fillText('ハイスコア: '+highScore,4,40);
-  x.fillText('総プレイ数: '+totalPlays,4,54);
+  x.fillStyle='#fff';
+  x.font='bold 16px monospace';
+  x.fillText('S:'+S,4,16);
+  x.font='10px monospace';
+  x.fillText('エンジェルの加護:'+(shield?'あり':'なし'),4,30);
+  x.fillText('難易度: '+difficultyLevel,4,42);
 
   if(!alive){
     x.fillStyle='rgba(0,0,0,0.6)'; x.fillRect(10,90,140,70);
@@ -382,7 +338,6 @@ function loop(now){
   draw();
   requestAnimationFrame(loop);
 }
-updateStatsUI();
 reset();
 requestAnimationFrame(loop);
 </script>
