@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Pixel Art Shooting – Angelin tuned (fixed timestep + time-based difficulty)</title>
+<title>魔王様！！いつまでよければいいですか！？</title>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-LLSD5KLJVN"></script>
 <script>
@@ -30,6 +30,7 @@ gtag('config', GA_MEASUREMENT_ID);
     color:#fff;
     font-family:sans-serif;
     font-size:12px;
+    z-index:10;
   }
   #sharePanel button{
     font:700 12px system-ui;
@@ -48,11 +49,65 @@ gtag('config', GA_MEASUREMENT_ID);
     user-select:none;
     pointer-events:none;
   }
+  #instructions{
+    position:absolute;
+    top:20px;
+    right:20px;
+    max-width:240px;
+    padding:18px 16px 16px;
+    background:rgba(0,0,0,0.7);
+    border:1px solid rgba(255,255,255,0.2);
+    border-radius:12px;
+    color:#fff;
+    font:12px/1.4 system-ui;
+    pointer-events:auto;
+    user-select:none;
+    z-index:5;
+  }
+  #instructions strong{display:block;font-size:13px;margin-bottom:6px;}
+  #instructions p{margin:0 0 6px;}
+  #instructions p:last-child{margin-bottom:0;}
+  #instructionsClose{
+    position:absolute;
+    top:6px;
+    right:6px;
+    width:26px;
+    height:26px;
+    padding:0;
+    border:1px solid rgba(255,255,255,0.3);
+    border-radius:999px;
+    background:rgba(0,0,0,0.5);
+    color:#fff;
+    font:13px/1 system-ui;
+    cursor:pointer;
+  }
+  #instructionsToggle{
+    position:absolute;
+    top:20px;
+    right:20px;
+    display:none;
+    padding:8px 12px;
+    background:rgba(0,0,0,0.7);
+    border:1px solid rgba(255,255,255,0.3);
+    border-radius:999px;
+    color:#fff;
+    font:14px/1 system-ui;
+    cursor:pointer;
+    z-index:5;
+  }
 </style>
 </head>
 <body>
 <audio id="bgm" src="bgm.mp3" loop autoplay hidden volume="0.5"></audio>
 <canvas id="c"></canvas>
+<div id="instructions">
+  <button id="instructionsClose" type="button">X</button>
+  <strong>遊び方</strong>
+  <p>操作方法：画面をタップ / マウスでドラッグ、または ←→ キーで移動。</p>
+  <p>敵にぶつかると即ゲームオーバー。</p>
+  <p>エンジェリンに触れると一度だけ身代わりが発動し、次の衝突を防ぎます。</p>
+</div>
+<button id="instructionsToggle" type="button">?</button>
 <div id="sharePanel">
   <div id="shareScoreLabel">SCORE: 0</div>
   <button id="shareActionBtn" style="background:#22c55e;color:#000;">シェアする</button>
@@ -74,6 +129,9 @@ const sharePanel = document.getElementById('sharePanel');
 const shareScoreLabel = document.getElementById('shareScoreLabel');
 const shareActionBtn = document.getElementById('shareActionBtn');
 const restartActionBtn = document.getElementById('restartActionBtn');
+const instructions = document.getElementById('instructions');
+const instructionsCloseBtn = document.getElementById('instructionsClose');
+const instructionsToggleBtn = document.getElementById('instructionsToggle');
 let shareScore = 0;
 
 function logPlayEvent(eventName, params={}){
@@ -109,6 +167,16 @@ restartActionBtn.addEventListener('click', () => {
   reset();
 });
 
+instructionsCloseBtn.addEventListener('click', () => {
+  instructions.style.display = 'none';
+  instructionsToggleBtn.style.display = 'block';
+});
+
+instructionsToggleBtn.addEventListener('click', () => {
+  instructions.style.display = 'block';
+  instructionsToggleBtn.style.display = 'none';
+});
+
 function showSharePanel(score){
   shareScore = score;
   shareScoreLabel.textContent = `SCORE: ${score}`;
@@ -128,6 +196,11 @@ function hideSharePanel(){
 hideSharePanel();
 function isOnSharePanel(target){
   return sharePanel.style.display !== 'none' && sharePanel.contains(target);
+}
+function isOnInstructionUi(target){
+  if(instructions.style.display !== 'none' && instructions.contains(target)) return true;
+  if(instructionsToggleBtn.style.display !== 'none' && instructionsToggleBtn.contains(target)) return true;
+  return false;
 }
 // モバイル環境での自動再生対策
 document.addEventListener('click', () => {
@@ -240,12 +313,14 @@ function hitBox(a, b){
 function pos(e){const r=c.getBoundingClientRect();return (e.clientX-r.left)/r.width*W}
 document.onpointerdown = e => {
   if(isOnSharePanel(e.target)) return;
+  if(isOnInstructionUi(e.target)) return;
   if(e.cancelable) e.preventDefault();
   if(!alive) return;
   tx = pos(e) - P.w/2;
 };
 document.onpointermove = e => {
   if(isOnSharePanel(e.target)) return;
+  if(isOnInstructionUi(e.target)) return;
   if(e.cancelable) e.preventDefault();
   if(!alive) return;
   tx = pos(e) - P.w/2;
