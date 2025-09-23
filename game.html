@@ -4,6 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Pixel Art Shooting – Angelin tuned (fixed timestep + time-based difficulty)</title>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-LLSD5KLJVN"></script>
+<script>
+const GA_MEASUREMENT_ID = 'G-LLSD5KLJVN';
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', GA_MEASUREMENT_ID);
+</script>
 <style>
   html,body{margin:0;background:#000;height:100%;display:grid;place-items:center;touch-action:none;overscroll-behavior:none}
   #c{display:block;touch-action:none;image-rendering:pixelated}
@@ -20,6 +29,7 @@
     border-radius:12px;
     color:#fff;
     font-family:sans-serif;
+    font-size:12px;
   }
   #sharePanel button{
     font:700 14px system-ui;
@@ -28,6 +38,8 @@
     border-radius:10px;
     cursor:pointer;
   }
+  #shareScoreLabel{font-size:18px;font-weight:700;}
+  .shareStat{font-size:12px;opacity:0.85;}
 </style>
 </head>
 <body>
@@ -35,6 +47,8 @@
 <canvas id="c"></canvas>
 <div id="sharePanel">
   <div id="shareScoreLabel">SCORE: 0</div>
+  <div id="shareHighScoreLabel" class="shareStat">最高スコア: 0</div>
+  <div id="shareTotalPlaysLabel" class="shareStat">総プレイ数: 0</div>
   <button id="shareActionBtn" style="background:#22c55e;color:#000;">シェアする</button>
 </div>
 <script>
@@ -51,7 +65,57 @@ let audioEnabled = syncAudioSetting();
 const sharePanel = document.getElementById('sharePanel');
 const shareScoreLabel = document.getElementById('shareScoreLabel');
 const shareActionBtn = document.getElementById('shareActionBtn');
+const shareHighScoreLabel = document.getElementById('shareHighScoreLabel');
+const shareTotalPlaysLabel = document.getElementById('shareTotalPlaysLabel');
 let shareScore = 0;
+
+const TOTAL_PLAYS_KEY = 'maoitu_total_plays';
+const HIGH_SCORE_KEY = 'maoitu_high_score';
+
+function readStat(key){
+  try{
+    const value = Number(localStorage.getItem(key));
+    return Number.isFinite(value) && value >= 0 ? value : 0;
+  }catch(_){
+    return 0;
+  }
+}
+
+function writeStat(key, value){
+  try{
+    localStorage.setItem(key, String(value));
+  }catch(_){/* ignore write errors */}
+}
+
+let totalPlays = readStat(TOTAL_PLAYS_KEY);
+let highScore = readStat(HIGH_SCORE_KEY);
+
+function updateStatsUI(){
+  shareHighScoreLabel.textContent = `最高スコア: ${highScore}`;
+  shareTotalPlaysLabel.textContent = `総プレイ数: ${totalPlays}`;
+}
+
+function logPlayEvent(eventName, params={}){
+  if(typeof window.gtag === 'function' && GA_MEASUREMENT_ID){
+    window.gtag('event', eventName, params);
+  }
+}
+
+function trackPlay(){
+  totalPlays += 1;
+  writeStat(TOTAL_PLAYS_KEY, totalPlays);
+  updateStatsUI();
+  logPlayEvent('play_started', { total_plays: totalPlays });
+}
+
+function registerHighScore(score){
+  if(score > highScore){
+    highScore = score;
+    writeStat(HIGH_SCORE_KEY, highScore);
+    updateStatsUI();
+    logPlayEvent('high_score_updated', { score });
+  }
+}
 
 function shareText(score){
   return `開発者:@ARTa_PIXELART\n『魔王様！！いつまでよければいいですか！？』\nスコア: ${score}\n皆もやってみてね！！！\n\nリンクから遊べるよ！！#PiXiEED\n\nhttps://reotsukada.github.io/maoitu/`;
@@ -74,6 +138,7 @@ shareActionBtn.addEventListener('click', async () => {
 function showSharePanel(score){
   shareScore = score;
   shareScoreLabel.textContent = `SCORE: ${score}`;
+  updateStatsUI();
   sharePanel.style.display = 'flex';
 }
 
@@ -206,13 +271,21 @@ document.onpointermove = e => {
 };
 addEventListener('keydown',e=>{ if(!alive) reset(); if(e.key==='ArrowLeft')tx-=20; else if(e.key==='ArrowRight')tx+=20; });
 
-function reset(){ alive=true; E.length=0; angels.length=0; o=0; S=0; shield=false; P.x=PLAYER_START_X; P.y=PLAYER_START_Y; tx=PLAYER_START_TX; P.skin=PLAYER;
+function reset(countPlay = true){ alive=true; E.length=0; angels.length=0; o=0; S=0; shield=false; P.x=PLAYER_START_X; P.y=PLAYER_START_Y; tx=PLAYER_START_TX; P.skin=PLAYER;
   enemySpawnIntervalFrames = 22;
   enemiesPerSpawn = 1;
   lastDifficultyUpdateSec = 0;
   elapsedFrames = 0;
   difficultyLevel = 1;
   hideSharePanel();
+  if(countPlay) trackPlay();
+}
+
+function endRun(){
+  if(!alive) return;
+  alive = false;
+  registerHighScore(S);
+  logPlayEvent('game_over', { score: S });
 }
 
 // ====== 1フレーム ======
@@ -241,7 +314,8 @@ function step(){
       if(shield){
         shield=false; P.skin=PLAYER; e.y=H+99;
       }else{
-        alive=false;
+        endRun();
+        break;
       }
     }
   }
@@ -275,6 +349,8 @@ function draw(){
   x.fillStyle='#fff'; x.font='bold 12px monospace';
   x.fillText('S:'+S+'  エンジェルの加護:'+(shield?'あり':'なし'),4,12);
   x.fillText('難易度: '+difficultyLevel,4,26);
+  x.fillText('ハイスコア: '+highScore,4,40);
+  x.fillText('総プレイ数: '+totalPlays,4,54);
 
   if(!alive){
     x.fillStyle='rgba(0,0,0,0.6)'; x.fillRect(10,90,140,70);
@@ -306,6 +382,8 @@ function loop(now){
   draw();
   requestAnimationFrame(loop);
 }
+updateStatsUI();
+reset();
 requestAnimationFrame(loop);
 </script>
 </body>
