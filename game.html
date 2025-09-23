@@ -163,7 +163,7 @@ const ENEMY_TYPES=ENEMY_TYPES_DATA.map(t=>({...t,skin:withAlpha(t.src)}));
 const PLAYER=withAlpha(PLAYER_SRC);
 const ANGEL=withAlpha(ANGEL_SRC);
 const PLAYER_START_X = 72;
-const PLAYER_START_Y = 192;
+const PLAYER_START_Y = 180;
 const PLAYER_START_TX = 80;
 
 // ====== 基本設定 ======
@@ -195,9 +195,9 @@ function spawnAngel(){
   angels.push({x:rnd(0,W-16),y:-18,w:16,h:16,v:1.4,skin:ANGEL});
 }
 
-// ====== Angelin 出現頻度（抑えめに調整） ======
-const ANGEL_BASE_INTERVAL = 720;  // 12秒ごとに判定（60fps想定だが固定タイムステップなので秒換算で一定）
-const ANGEL_SPAWN_PROB    = 0.35; // 35%の確率 → 期待値 ~34秒に1回
+// ====== Angelin 出現頻度（5秒ごと判定 + 低確率） ======
+const ANGEL_BASE_INTERVAL = 300;  // 5秒ごとに判定（60fps想定だが固定タイムステップなので秒換算で一定）
+const ANGEL_SPAWN_PROB    = 0.10; // 10%の確率 → 期待値 ~50秒に1回
 
 // ====== 難易度スケーリング（時間ベース） ======
 // 仕様：
