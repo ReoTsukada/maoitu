@@ -140,13 +140,14 @@ a { color:#7dd3fc; }
 </div>
 
 <script>
-const GAME_URL = "game.html"; // ← 修正済み
+const GAME_URL = "./maoitu/index.html"; // ゲーム本体
 const AUDIO_KEY = "maoitu_audio";
+const GAME_CANONICAL_URL = `${window.location.origin}/maoitu/`;
 const shareBtn = document.getElementById("shareBtn");
 
 // 投稿文（スコア無し・#PiXiEED 付き・最後に公開リンク）
 function shareText() {
-  return `開発者:@ARTa_PIXELART　\n『魔王様！！いつまでよければいいですか！？』\n皆もやってみてね！！！\n\nリンクから遊べるよ！！#PiXiEED\n\nhttps://reotsukada.github.io/maoitu/`;
+  return `開発者:@ARTa_PIXELART　\n『魔王様！！いつまでよければいいですか！？』\n皆もやってみてね！！！\n\nリンクから遊べるよ！！#PiXiEED\n\n${GAME_CANONICAL_URL}`;
 }
 
 shareBtn.addEventListener("click", async () => {

@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>魔王様！！いつまでよければいいですか！？</title>
+<link rel="manifest" href="/maoitu/manifest.webmanifest">
+<meta name="theme-color" content="#000000">
+<link rel="apple-touch-icon" href="/maoitu/icons/icon-192.png">
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-LLSD5KLJVN"></script>
 <script>
@@ -124,6 +127,7 @@ gtag('config', GA_MEASUREMENT_ID);
 const bgm = document.getElementById('bgm');
 bgm.volume = 0.5;
 const AUDIO_KEY = 'maoitu_audio';
+const GAME_CANONICAL_URL = `${window.location.origin}/maoitu/`;
 function syncAudioSetting(){
   const enabled = localStorage.getItem(AUDIO_KEY) !== 'off';
   bgm.muted = !enabled;
@@ -161,7 +165,7 @@ function logPlayStart(){
 }
 
 function shareText(score){
-  return `開発者:@ARTa_PIXELART\n『魔王様！！いつまでよければいいですか！？』\nスコア: ${score}\n皆もやってみてね！！！\n\nリンクから遊べるよ！！#PiXiEED\n\nhttps://reotsukada.github.io/maoitu/`;
+  return `開発者:@ARTa_PIXELART\n『魔王様！！いつまでよければいいですか！？』\nスコア: ${score}\n皆もやってみてね！！！\n\nリンクから遊べるよ！！#PiXiEED\n\n${GAME_CANONICAL_URL}`;
 }
 
 async function copyShareText(text){
@@ -456,6 +460,16 @@ function loop(now){
 }
 reset();
 requestAnimationFrame(loop);
+
+const canUseServiceWorker = 'serviceWorker' in navigator && window.isSecureContext;
+if (canUseServiceWorker) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/maoitu/service-worker.js', { scope: '/maoitu/' })
+      .catch(err => console.error('Service worker registration failed:', err));
+  });
+} else {
+  console.info('Service worker not registered: secure context required.');
+}
 </script>
 </body>
 </html>
